@@ -10,7 +10,7 @@ edition = "2018"
 
 [workspace]
 members = [
-    "day-1",
-    "day-2",
-    "day-3"
+    "day-01",
+    "day-02",
+    "day-03"
 ]
