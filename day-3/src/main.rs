@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 fn priority(ch: char) -> u32 {
     match ch {
         'a'..='z' => (ch as u32) - ('a' as u32) + 1,
@@ -7,7 +9,7 @@ fn priority(ch: char) -> u32 {
 }
 fn main() {
     let input_file = std::env::args().skip(1).take(1).next().unwrap();
-    let contents = "\
+    let _contents = "\
 vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
 PmmdzqPrVvPwwTWBwg
@@ -17,11 +19,8 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
     let contents = std::fs::read_to_string(input_file).unwrap();
     let mut priority_sum = 0;
     for line in contents.lines() {
-        let mut set = std::collections::HashSet::new();
         let (front, back) = line.split_at(line.len() / 2);
-        for ch in front.chars() {
-            set.insert(ch);
-        }
+        let set: HashSet<char> = HashSet::from_iter(front.chars());
         let common = back.chars().find(|ch| set.contains(ch)).unwrap();
         priority_sum += priority(common);
     }
@@ -32,14 +31,8 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
         let a = lines[0];
         let b = lines[1];
         let c = lines[2];
-        let mut set_a = std::collections::HashSet::new();
-        let mut set_b = std::collections::HashSet::new();
-        for ch in a.chars() {
-            set_a.insert(ch);
-        }
-        for ch in b.chars() {
-            set_b.insert(ch);
-        }
+        let set_a: HashSet<char> = HashSet::from_iter(a.chars());
+        let set_b: HashSet<char> = HashSet::from_iter(b.chars());
         let badge = c
             .chars()
             .find(|ch| set_a.contains(ch) && set_b.contains(ch))
