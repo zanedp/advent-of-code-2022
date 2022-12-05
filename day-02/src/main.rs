@@ -65,12 +65,7 @@ impl From<&str> for Outcome {
 
 impl Outcome {
     fn get(their_move: Shape, my_move: Shape) -> Self {
-        let mut wins = HashSet::new();
-        wins.insert((Rock, Paper));
-        wins.insert((Paper, Scissors));
-        wins.insert((Scissors, Rock));
-        let wins = wins;
-
+        let wins = HashSet::from([(Rock, Paper), (Paper, Scissors), (Scissors, Rock)]);
         if wins.contains(&(their_move, my_move)) {
             Win
         } else if their_move == my_move {
