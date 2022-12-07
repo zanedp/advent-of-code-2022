@@ -8,7 +8,6 @@ fn priority(ch: char) -> u32 {
     }
 }
 fn main() {
-    let input_file = std::env::args().skip(1).take(1).next().unwrap();
     let _contents = "\
 vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
@@ -16,7 +15,7 @@ PmmdzqPrVvPwwTWBwg
 wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw";
-    let contents = std::fs::read_to_string(input_file).unwrap();
+    let contents = include_str!("input.txt");
     let mut priority_sum = 0;
     for line in contents.lines() {
         let (front, back) = line.split_at(line.len() / 2);
