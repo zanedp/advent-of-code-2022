@@ -42,23 +42,43 @@ impl UniqueWindowDetector {
     }
 }
 
-fn main() {
-    let _sample1 = "mjqjpqmgbljsphdztnvjfqwrcgsmlb";
-    let _sample2 = "bvwbjplbgvbhsrlpgdmjqwftvncz";
-    let _sample3 = "nppdvjthqldpwncqszvftbrmjlhg";
-    let _sample4 = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg";
-    let _sample5 = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw";
-
-    let _input_file = include_str!("input.txt");
-
-    let input = _input_file;
-
-    let mut detector = UniqueWindowDetector::new(14); // 4 for part 1, 14 for part 2
+fn find_start_of_unique_seq(input: &str, len: usize) -> usize {
+    let mut detector = UniqueWindowDetector::new(len);
+    // 4 for part 1, 14 for part 2
     for ch in input.chars() {
         detector.add_char(ch);
         if detector.is_unique_window() {
             break;
         }
     }
-    println!("start at char {}", detector.location());
+    detector.location()
+}
+
+fn main() {
+    let sample1 = "mjqjpqmgbljsphdztnvjfqwrcgsmlb";
+    let sample2 = "bvwbjplbgvbhsrlpgdmjqwftvncz";
+    let sample3 = "nppdvjthqldpwncqszvftbrmjlhg";
+    let sample4 = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg";
+    let sample5 = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw";
+    let input = include_str!("input.txt");
+
+    assert_eq!(7, find_start_of_unique_seq(sample1, 4));
+    assert_eq!(5, find_start_of_unique_seq(sample2, 4));
+    assert_eq!(6, find_start_of_unique_seq(sample3, 4));
+    assert_eq!(10, find_start_of_unique_seq(sample4, 4));
+    assert_eq!(11, find_start_of_unique_seq(sample5, 4));
+
+    let part1_loc = find_start_of_unique_seq(input, 4);
+    println!("part 1 start at char {}", part1_loc);
+    assert_eq!(1896, part1_loc);
+
+    assert_eq!(19, find_start_of_unique_seq(sample1, 14));
+    assert_eq!(23, find_start_of_unique_seq(sample2, 14));
+    assert_eq!(23, find_start_of_unique_seq(sample3, 14));
+    assert_eq!(29, find_start_of_unique_seq(sample4, 14));
+    assert_eq!(26, find_start_of_unique_seq(sample5, 14));
+
+    let part2_loc = find_start_of_unique_seq(input, 14);
+    println!("part 2 start at char {}", part2_loc);
+    assert_eq!(3452, part2_loc);
 }
