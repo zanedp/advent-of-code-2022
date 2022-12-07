@@ -23,7 +23,7 @@ fn parse_line(line: &str) -> ((u32, u32), (u32, u32)) {
 
 fn main() {
     //let input = SAMPLE;
-    let input = std::fs::read_to_string(std::env::args().skip(1).take(1).next().unwrap()).unwrap();
+    let input = include_str!("input.txt");
     let mut subset_count = 0;
     let mut any_overlap_count = 0;
     for line in input.lines() {
@@ -38,5 +38,7 @@ fn main() {
         }
     }
     println!("# subsets = {}", subset_count);
+    assert_eq!(644, subset_count, "part 1 is incorrect");
     println!("# any overlaps = {}", any_overlap_count);
+    assert_eq!(926, any_overlap_count, "part 2 is incorrect");
 }
