@@ -81,8 +81,7 @@ fn round_score(their_move: Shape, my_move: Shape) -> u32 {
 }
 
 fn main() {
-    let in_file = std::env::args().skip(1).take(1).next().unwrap();
-    let input = std::fs::read_to_string(in_file).unwrap();
+    let input = include_str!("input.txt");
     let total_score: u32 = input
         .lines()
         .map(|line| line.split_once(" ").unwrap())
@@ -90,6 +89,7 @@ fn main() {
         .map(|(theirs, mine)| round_score(theirs, mine))
         .sum();
     println!("total score: {total_score}");
+    assert_eq!(15691, total_score, "part 1 incorrect");
 
     let total_score2: u32 = input
         .lines()
@@ -99,4 +99,5 @@ fn main() {
         .map(|(theirs, mine)| round_score(theirs, mine))
         .sum();
     println!("total score 2: {total_score2}");
+    assert_eq!(12989, total_score2, "part 2 incorrect");
 }
