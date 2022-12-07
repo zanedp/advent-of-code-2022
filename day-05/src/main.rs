@@ -1,4 +1,4 @@
-fn parse_line(line: &str) -> Vec<char> {
+fn parse_crate_line(line: &str) -> Vec<char> {
     let mut retval = Vec::new();
     let mut iter = line.chars();
 
@@ -46,7 +46,7 @@ fn main() {
     let init_stacking = init_stacking;
     let rows = init_stacking
         .iter()
-        .map(|line| parse_line(line))
+        .map(|line| parse_crate_line(line))
         .collect::<Vec<_>>();
 
     let mut stacks = vec![Vec::new(); num_stacks]; // (0..num_stacks).map(|_| Vec::new()).collect::<Vec<_>>();
