@@ -16,14 +16,19 @@ wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw";
     let contents = include_str!("input.txt");
+    //let contents = _contents;
     let mut priority_sum = 0;
     for line in contents.lines() {
         let (front, back) = line.split_at(line.len() / 2);
-        let set: HashSet<char> = HashSet::from_iter(front.chars());
-        let common = back.chars().find(|ch| set.contains(ch)).unwrap();
-        priority_sum += priority(common);
+        let set_a: HashSet<char> = HashSet::from_iter(front.chars());
+        let set_b: HashSet<char> = HashSet::from_iter(back.chars());
+        let intersection = set_a.intersection(&set_b).cloned().collect::<HashSet<_>>();
+        assert_eq!(1, intersection.len(), "expected only a single match");
+
+        priority_sum += priority(*intersection.iter().take(1).next().unwrap());
     }
     println!("both sum = {priority_sum}");
+    assert_eq!(7908, priority_sum, "part 1 is incorrect");
 
     let mut badge_sum = 0;
     for lines in contents.lines().collect::<Vec<_>>().chunks(3) {
@@ -32,13 +37,27 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
         let c = lines[2];
         let set_a: HashSet<char> = HashSet::from_iter(a.chars());
         let set_b: HashSet<char> = HashSet::from_iter(b.chars());
+        let set_c: HashSet<char> = HashSet::from_iter(c.chars());
         let badge = c
             .chars()
             .find(|ch| set_a.contains(ch) && set_b.contains(ch))
             .unwrap();
+        let badge2 = *set_a
+            .intersection(&set_b)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .intersection(&set_c)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .iter()
+            .take(1)
+            .next()
+            .unwrap();
+        assert_eq!(badge, badge2);
         badge_sum += priority(badge);
     }
     println!("badge sum = {badge_sum}");
+    assert_eq!(2838, badge_sum, "part 2 is incorrect");
 }
 
 #[test]
