@@ -16,35 +16,24 @@ fn parse_crate_line(line: &str) -> Vec<char> {
 }
 
 fn main() {
-    //let input = include_str!("test_input.txt");
-    let input = include_str!("input.txt");
-    let mut init_stacking = Vec::new();
-    let mut move_instructions = Vec::new();
-    enum State {
-        Stacking,
-        Moves,
-    }
-    let mut state = State::Stacking;
-    for line in input.lines() {
-        if line.is_empty() {
-            state = State::Moves;
-            continue;
-        }
-        match state {
-            State::Stacking => {
-                init_stacking.push(line);
-            }
-            State::Moves => {
-                move_instructions.push(line);
-            }
-        }
-    }
-    let move_instructions = move_instructions;
-    let num_stacks = init_stacking.pop().unwrap().split_whitespace().count();
+    //let input = Ved::from_iter(include_str!("test_input.txt").lines());
+    let input = Vec::from_iter(include_str!("input.txt").lines());
+    let mut groups = input.split(|line| line.is_empty());
+    let mut stacking_input = Vec::from(groups.next().unwrap());
+    let instructions_input = Vec::from(
+        groups
+            .next()
+            .expect("expected blank line indicating start of move instructions"),
+    );
 
-    init_stacking.reverse();
-    let init_stacking = init_stacking;
-    let rows = init_stacking
+    //  1   2   3  ... num_stacks
+    let num_stacks = stacking_input.pop().unwrap().split_whitespace().count();
+
+    // currently, they're in rows, sky to earth. Reverse so when we put them into stacks,
+    // the earth-adjacent ones go in first (the bottom of the stack)
+    stacking_input.reverse();
+    let stacking_input = stacking_input;
+    let rows = stacking_input
         .iter()
         .map(|line| parse_crate_line(line))
         .collect::<Vec<_>>();
@@ -65,19 +54,22 @@ fn main() {
             }
         }
     }
+    let stacks = stacks;
     println!("start stacks:");
     print_stacks(&stacks);
-    let mut stacks2 = stacks.clone();
+    let mut stacks_for_part1 = stacks.clone();
+    let mut stacks_for_part2 = stacks.clone();
+    drop(stacks);
 
     let mut instructions = Vec::new();
-    for inst in move_instructions {
-        let parts: Vec<_> = inst
+    for inst in instructions_input {
+        let parts = inst
             .replace("move ", "")
             .replace(" from ", ",")
             .replace(" to ", ",")
             .split(",")
             .map(|x| x.to_string())
-            .collect();
+            .collect::<Vec<_>>();
         let mut parts = parts.iter();
         let num = parts.next().unwrap().parse::<usize>().unwrap();
         let from = parts.next().unwrap().parse::<usize>().unwrap() - 1;
@@ -87,14 +79,14 @@ fn main() {
     let instructions = instructions;
     for (num, from, to) in instructions.iter() {
         for _ in 0..*num {
-            let the_crate = stacks[*from].pop().unwrap();
-            stacks[*to].push(the_crate);
+            let the_crate = stacks_for_part1[*from].pop().unwrap();
+            stacks_for_part1[*to].push(the_crate);
         }
     }
     println!();
     println!("part 1:");
-    print_stacks(&stacks);
-    for stack in stacks {
+    print_stacks(&stacks_for_part1);
+    for stack in stacks_for_part1 {
         match stack.last() {
             Some(top) => print!("{top}"),
             None => print!("-"),
@@ -103,16 +95,16 @@ fn main() {
     println!();
 
     for (num, from, to) in instructions.iter() {
-        let height = stacks2[*from].len();
-        let cs: Vec<char> = stacks2[*from].drain(height - *num..).collect();
+        let height = stacks_for_part2[*from].len();
+        let cs: Vec<char> = stacks_for_part2[*from].drain(height - *num..).collect();
         for c in cs {
-            stacks2[*to].push(c);
+            stacks_for_part2[*to].push(c);
         }
     }
     println!();
     println!("part2:");
-    print_stacks(&stacks2);
-    for stack in stacks2 {
+    print_stacks(&stacks_for_part2);
+    for stack in stacks_for_part2 {
         match stack.last() {
             Some(top) => print!("{top}"),
             None => print!("-"),
