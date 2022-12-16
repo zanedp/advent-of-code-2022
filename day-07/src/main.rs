@@ -59,14 +59,15 @@ impl FileSystemEntry {
         for _ in 0..depth {
             print!(" ");
         }
-        print!("{}", self.name);
+        print!("- {}", self.name);
         if self.is_dir() {
-            print!("/");
+            print!("/ ({})", self.size());
             println!();
             self.children
                 .values()
                 .for_each(|x| Rc::clone(x).borrow().print_tree_helper(depth + 4));
         } else {
+            print!(" ({})", self.size());
             println!();
         }
     }
@@ -88,8 +89,7 @@ fn path_to_string(cur_path: &Vec<FsHandle>) -> String {
 
 fn main() {
     let input = include_str!("input.txt");
-    //    let mut dir_contents = HashMap::new();
-    //   let mut file_sizes = HashMap::new();
+    // let input = include_str!("sample_input.txt");
     let mut cwd = Rc::new(RefCell::new(FileSystemEntry {
         name: "<fs>".to_string(),
         ..FileSystemEntry::default()
@@ -143,6 +143,7 @@ fn main() {
             }
         }
     }
+    fs.borrow().print_tree();
 
     let dir_sizes = RefCell::new(Vec::new());
     fs.borrow().visit(|fs| {
@@ -152,18 +153,27 @@ fn main() {
                 .push((fs.name.to_string(), fs.size()));
         }
     });
-    //println!("{:#?}", dir_sizes);
 
     let sum = dir_sizes
-        .into_inner()
-        .into_iter()
+        .borrow()
+        .iter()
         .filter(|(_name, size)| *size < 100000)
         //.inspect(|(name, size)| println!("{name} {size}"))
         .fold(0, |a, e| a + e.1);
 
-    println!("sum: {sum}");
-
-    //Rc::clone(&fs).borrow().print_tree();
-    //println!("total size = {}", fs.size());
-    //println!("{:#?}", fs);
+    println!("part 1 sum: {sum}");
+    println!("********************************************************************************");
+    let total_space = 70000000;
+    let needed_free = 30000000;
+    let fs_size = fs.borrow().size();
+    let cur_free = total_space - fs_size;
+    let mut part2_sizes = dir_sizes
+        .borrow()
+        .iter()
+        .filter(|x| cur_free + x.1 > needed_free)
+        // .inspect(|x| println! {"{} - {}", x.0, x.1})
+        .map(|x| x.1)
+        .collect::<Vec<_>>();
+    part2_sizes.sort();
+    println!("part 2 smallest = {}", part2_sizes[0]);
 }
