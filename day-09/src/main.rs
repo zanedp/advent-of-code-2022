@@ -16,17 +16,11 @@ fn main() {
         for _ in 0..num {
             // move head
             // print!("H:{:?}", h);
-            h = match dir {
-                "R" => (h.0 + 1, h.1),
-                "L" => (h.0 - 1, h.1),
-                "U" => (h.0, h.1 + 1),
-                "D" => (h.0, h.1 - 1),
-                _ => unreachable!("unexpected direction in input"),
-            };
+            h = new_head_loc(h, dir);
             // print!(" +#{}->H:{:?}", n, h);
 
             // catch up tail
-            t = new_location(h, t);
+            t = new_tail_loc(h, t);
             // println!("    -> {:?}", t);
 
             t_positions.insert(t);
@@ -38,8 +32,19 @@ fn main() {
     // println!("{:?}", sorted_positions);
 }
 
+/// Gets the new location of head/a knot after moving it once in the specified direction.
+fn new_head_loc(h: (i32, i32), dir: &str) -> (i32, i32) {
+    match dir {
+        "R" => (h.0 + 1, h.1),
+        "L" => (h.0 - 1, h.1),
+        "U" => (h.0, h.1 + 1),
+        "D" => (h.0, h.1 - 1),
+        _ => unreachable!("unexpected direction in input"),
+    }
+}
+
 /// Gets the new location for `t` based on the current location of `h`.
-fn new_location(h: (i32, i32), t: (i32, i32)) -> (i32, i32) {
+fn new_tail_loc(h: (i32, i32), t: (i32, i32)) -> (i32, i32) {
     let delta = ((h.0 - t.0), (h.1 - t.1));
     // + -> head is to the right, or above
     // println!("    T:{:?}, Delta:{:?}", t, delta);
