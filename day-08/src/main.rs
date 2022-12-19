@@ -25,17 +25,17 @@ fn main() {
             let height = grid[r][c];
             let is_border = (r == 0) || (c == 0) || (r == last_row) || (c == last_col);
             let this_row = &grid[r];
-            let (west, east) = this_row.split_at(c);
-            let left_max = west.iter().max().unwrap_or(&0);
-            let right_max = east.iter().skip(1).max().unwrap_or(&0);
+            let (left, right) = this_row.split_at(c);
+            let left_max = left.iter().max().unwrap_or(&0);
+            let right_max = right.iter().skip(1).max().unwrap_or(&0);
             let is_visible_lr = *left_max < height || *right_max < height;
             // println!("({}, {}) -> border: {}", r, c, is_border);
             // println!("({}, {}) -> lr visible: {}", r, c, is_visible_lr);
             let this_col = Vec::from_iter((0..=last_row).map(|r| grid[r][c]));
-            let (north, south) = this_col.split_at(r);
-            let above_max = north.iter().max().unwrap_or(&0);
-            let below_max = south.iter().skip(1).max().unwrap_or(&0);
-            let is_visible_ab = *above_max < height || *below_max < height;
+            let (up, down) = this_col.split_at(r);
+            let up_max = up.iter().max().unwrap_or(&0);
+            let down_max = down.iter().skip(1).max().unwrap_or(&0);
+            let is_visible_ab = *up_max < height || *down_max < height;
             // println!("({}, {}) -> ab visible: {}", r, c, is_visible_ab);
 
             let is_visible = is_border || is_visible_lr || is_visible_ab;
@@ -43,17 +43,17 @@ fn main() {
                 visible_count += 1;
             }
 
-            let north_view: Vec<i8> = north.iter().rev().cloned().collect();
-            let east_view: Vec<i8> = east.iter().skip(1).cloned().collect();
-            let south_view: Vec<i8> = south.iter().skip(1).cloned().collect();
-            let west_view: Vec<i8> = west.iter().rev().cloned().collect();
+            let up_view: Vec<i8> = up.iter().rev().cloned().collect();
+            let right_view: Vec<i8> = right.iter().skip(1).cloned().collect();
+            let down_view: Vec<i8> = down.iter().skip(1).cloned().collect();
+            let left_view: Vec<i8> = left.iter().rev().cloned().collect();
 
             // println!("-- ({}, {}) --", r, c);
-            let north_view_dist = find_viewing_dist(height, &north_view);
-            let east_view_dist = find_viewing_dist(height, &east_view);
-            let south_view_dist = find_viewing_dist(height, &south_view);
-            let west_view_dist = find_viewing_dist(height, &west_view);
-            let scenic_score = north_view_dist * east_view_dist * south_view_dist * west_view_dist;
+            let up_view_dist = find_viewing_dist(height, &up_view);
+            let right_view_dist = find_viewing_dist(height, &right_view);
+            let down_view_dist = find_viewing_dist(height, &down_view);
+            let left_view_dist = find_viewing_dist(height, &left_view);
+            let scenic_score = up_view_dist * right_view_dist * down_view_dist * left_view_dist;
             // if r == 3 && c == 2 {
             // println!("scenic score: {}", scenic_score);
             // }
