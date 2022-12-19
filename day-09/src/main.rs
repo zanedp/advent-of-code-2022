@@ -26,33 +26,7 @@ fn main() {
             // print!(" +#{}->H:{:?}", n, h);
 
             // catch up tail
-            let delta = ((h.0 - t.0), (h.1 - t.1));
-            // + -> head is to the right, or above
-            // println!("    T:{:?}, Delta:{:?}", t, delta);
-            t = match delta {
-                (-2, -1) => (t.0 - 1, t.1 - 1),
-                (-2, 0) => (t.0 - 1, t.1),
-                (-2, 1) => (t.0 - 1, t.1 + 1),
-                (-1, -2) => (t.0 - 1, t.1 - 1),
-                (-1, -1) => t,
-                (-1, 0) => t,
-                (-1, 1) => t,
-                (-1, 2) => (t.0 - 1, t.1 + 1),
-                (0, -2) => (t.0, t.1 - 1),
-                (0, -1) => t,
-                (0, 0) => t,
-                (0, 1) => t,
-                (0, 2) => (t.0, t.1 + 1),
-                (1, -2) => (t.0 + 1, t.1 - 1),
-                (1, -1) => t,
-                (1, 0) => t,
-                (1, 1) => t,
-                (1, 2) => (t.0 + 1, t.1 + 1),
-                (2, -1) => (t.0 + 1, t.1 - 1),
-                (2, 0) => (t.0 + 1, t.1),
-                (2, 1) => (t.0 + 1, t.1 + 1),
-                _ => unreachable!("unexpected delta: {:?}", delta),
-            };
+            t = new_location(h, t);
             // println!("    -> {:?}", t);
 
             t_positions.insert(t);
@@ -62,4 +36,35 @@ fn main() {
     // let mut sorted_positions = t_positions.iter().cloned().collect::<Vec<(i32, i32)>>();
     // sorted_positions.sort_unstable();
     // println!("{:?}", sorted_positions);
+}
+
+/// Gets the new location for `t` based on the current location of `h`.
+fn new_location(h: (i32, i32), t: (i32, i32)) -> (i32, i32) {
+    let delta = ((h.0 - t.0), (h.1 - t.1));
+    // + -> head is to the right, or above
+    // println!("    T:{:?}, Delta:{:?}", t, delta);
+    match delta {
+        (-2, -1) => (t.0 - 1, t.1 - 1),
+        (-2, 0) => (t.0 - 1, t.1),
+        (-2, 1) => (t.0 - 1, t.1 + 1),
+        (-1, -2) => (t.0 - 1, t.1 - 1),
+        (-1, -1) => t,
+        (-1, 0) => t,
+        (-1, 1) => t,
+        (-1, 2) => (t.0 - 1, t.1 + 1),
+        (0, -2) => (t.0, t.1 - 1),
+        (0, -1) => t,
+        (0, 0) => t,
+        (0, 1) => t,
+        (0, 2) => (t.0, t.1 + 1),
+        (1, -2) => (t.0 + 1, t.1 - 1),
+        (1, -1) => t,
+        (1, 0) => t,
+        (1, 1) => t,
+        (1, 2) => (t.0 + 1, t.1 + 1),
+        (2, -1) => (t.0 + 1, t.1 - 1),
+        (2, 0) => (t.0 + 1, t.1),
+        (2, 1) => (t.0 + 1, t.1 + 1),
+        _ => unreachable!("unexpected delta: {:?}", delta),
+    }
 }
