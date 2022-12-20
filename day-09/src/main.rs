@@ -115,13 +115,13 @@ fn to_matrix(
 }
 
 #[allow(dead_code)]
-fn print_matrix(matrix: &Vec<Vec<char>>) {
-    let mut m = matrix.clone();
+fn print_matrix(matrix: &[Vec<char>]) {
+    let mut m = matrix.to_owned();
     m.reverse();
     let rows = m
         .iter()
         .map(|row| row.iter().map(|cell| cell.to_string()))
-        .map(|row| String::from_iter(row));
+        .map(String::from_iter);
     for row in rows {
         println!("{}", row);
     }

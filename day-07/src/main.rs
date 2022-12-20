@@ -28,13 +28,13 @@ impl FileSystemEntry {
     }
 
     pub fn add_file(&mut self, name: &str, size: usize) {
-        self.children
-            .entry(String::from(name))
-            .or_insert(Rc::new(RefCell::new(Self {
+        self.children.entry(String::from(name)).or_insert_with(|| {
+            Rc::new(RefCell::new(Self {
                 name: String::from(name),
                 size,
                 ..Self::default()
-            })));
+            }))
+        });
     }
 
     pub fn add_or_get_dir(&mut self, name: &str) -> FsHandle {
@@ -79,7 +79,7 @@ impl FileSystemEntry {
 }
 
 #[allow(dead_code)]
-fn path_to_string(cur_path: &Vec<FsHandle>) -> String {
+fn path_to_string(cur_path: &[FsHandle]) -> String {
     cur_path
         .iter()
         .map(|x| Rc::clone(x).borrow_mut().name.clone())
@@ -98,7 +98,7 @@ fn main() {
     let mut cur_path: Vec<FsHandle> = Vec::new();
     cur_path.push(Rc::clone(&cwd));
     for line in input.lines() {
-        if line.starts_with("$") {
+        if line.starts_with('$') {
             // command
             let cmd = &line[2..];
             if cmd.starts_with("cd") {
@@ -129,7 +129,7 @@ fn main() {
             }
         } else {
             // must be output of a command
-            let (left, right) = line.split_once(" ").unwrap();
+            let (left, right) = line.split_once(' ').unwrap();
             match left {
                 "dir" => {
                     let name = right.to_string();

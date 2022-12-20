@@ -1,4 +1,4 @@
-fn print_grid(grid: &Vec<Vec<i8>>) {
+fn print_grid(grid: &[Vec<i8>]) {
     for row in grid.iter() {
         for col in row.iter() {
             print!("{}", col);
@@ -64,9 +64,9 @@ fn main() {
     println!("max scenic score = {}", max_scenic_score);
 }
 
-fn find_viewing_dist(tree_house_height: i8, eye_line: &Vec<i8>) -> usize {
+fn find_viewing_dist(tree_house_height: i8, eye_line: &[i8]) -> usize {
     let mut found_edge = false;
-    let in_view: Vec<_> = eye_line
+    eye_line
         .iter()
         .take_while(|cur| {
             if found_edge {
@@ -76,9 +76,7 @@ fn find_viewing_dist(tree_house_height: i8, eye_line: &Vec<i8>) -> usize {
             found_edge |= is_stop;
             true
         })
-        .collect();
-    // println!("{:?}", in_view);
-    in_view.len()
+        .count()
 }
 
 #[test]

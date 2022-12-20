@@ -84,7 +84,7 @@ fn main() {
     let input = include_str!("input.txt");
     let total_score: u32 = input
         .lines()
-        .map(|line| line.split_once(" ").unwrap())
+        .map(|line| line.split_once(' ').unwrap())
         .map(|(theirs, mine)| (Shape::from(theirs), Shape::from(mine)))
         .map(|(theirs, mine)| round_score(theirs, mine))
         .sum();
@@ -93,7 +93,7 @@ fn main() {
 
     let total_score2: u32 = input
         .lines()
-        .map(|line| line.split_once(" ").unwrap())
+        .map(|line| line.split_once(' ').unwrap())
         .map(|(theirs, need)| (Shape::from(theirs), Outcome::from(need)))
         .map(|(theirs, need)| (theirs, theirs.counter(need)))
         .map(|(theirs, mine)| round_score(theirs, mine))

@@ -67,7 +67,7 @@ fn main() {
             .replace("move ", "")
             .replace(" from ", ",")
             .replace(" to ", ",")
-            .split(",")
+            .split(',')
             .map(|x| x.to_string())
             .collect::<Vec<_>>();
         let mut parts = parts.iter();
@@ -115,7 +115,7 @@ fn main() {
     //println!("move_instructions = {:#?}", move_instructions);
 }
 
-fn print_stacks(stacks: &Vec<Vec<char>>) {
+fn print_stacks(stacks: &[Vec<char>]) {
     for (i, stack) in stacks.iter().enumerate() {
         println!("{} - {}", i, String::from_iter(stack.iter()));
     }

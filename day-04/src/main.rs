@@ -10,12 +10,12 @@ const SAMPLE: &str = "\
 2-6,4-8";
 
 fn parse_line(line: &str) -> ((u32, u32), (u32, u32)) {
-    let (left, right) = line.split_once(",").unwrap();
+    let (left, right) = line.split_once(',').unwrap();
 
-    let (left_start, left_end) = left.split_once("-").unwrap();
+    let (left_start, left_end) = left.split_once('-').unwrap();
     let left = (left_start.parse().unwrap(), left_end.parse().unwrap());
 
-    let (right_start, right_end) = right.split_once("-").unwrap();
+    let (right_start, right_end) = right.split_once('-').unwrap();
     let right = (right_start.parse().unwrap(), right_end.parse().unwrap());
 
     (left, right)
