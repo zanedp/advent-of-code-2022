@@ -51,7 +51,7 @@ impl FileSystemEntry {
     {
         self.children
             .values()
-            .for_each(|x| x.borrow_mut().visit::<F>(func));
+            .for_each(|x| x.borrow().visit::<F>(func));
         func(self);
     }
 
