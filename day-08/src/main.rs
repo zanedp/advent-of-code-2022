@@ -35,10 +35,10 @@ fn main() {
             let (up, down) = this_col.split_at(r);
             let up_max = up.iter().max().unwrap_or(&0);
             let down_max = down.iter().skip(1).max().unwrap_or(&0);
-            let is_visible_ab = *up_max < height || *down_max < height;
+            let is_visible_ud = *up_max < height || *down_max < height;
             // println!("({}, {}) -> ab visible: {}", r, c, is_visible_ab);
 
-            let is_visible = is_border || is_visible_lr || is_visible_ab;
+            let is_visible = is_border || is_visible_lr || is_visible_ud;
             if is_visible {
                 visible_count += 1;
             }
