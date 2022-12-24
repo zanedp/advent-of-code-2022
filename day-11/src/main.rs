@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, str::FromStr};
 
-type WorryLevel = i32;
+type WorryLevel = u128;
 
 use Operation::*;
 #[derive(Debug, Default)]
@@ -26,7 +26,7 @@ impl FromStr for Operation {
 enum OperationValue {
     #[default]
     OldValue,
-    Number(i32),
+    Number(WorryLevel),
 }
 
 impl FromStr for OperationValue {
@@ -46,13 +46,18 @@ impl FromStr for OperationValue {
     }
 }
 
+enum StressManagement {
+    None,
+    TakeABreathAndDivideBy3,
+}
+
 #[derive(Debug, Default)]
 struct Monkey {
     id: usize,
     items: VecDeque<WorryLevel>,
     op: Operation,
     op_value: OperationValue,
-    test_divisible_by: i32,
+    test_divisible_by: WorryLevel,
     test_true_monkey: usize,
     test_false_monkey: usize,
 }
@@ -68,7 +73,7 @@ impl Monkey {
 
     /// # Returns
     /// (monkey item is thrown to, item worry level)
-    fn take_turn(&mut self) -> (usize, WorryLevel) {
+    fn take_turn(&mut self, stress_man: StressManagement) -> (usize, WorryLevel) {
         let item_worry_level = self.items.pop_front().unwrap();
         let op_value = match self.op_value {
             OperationValue::Number(n) => n,
@@ -79,7 +84,10 @@ impl Monkey {
             Multiply => item_worry_level * op_value,
             Unknown => panic!("this monkey doesn't have an operation"),
         };
-        let worry_level_once_bored = worry_level_while_examining / 3;
+        let worry_level_once_bored = match stress_man {
+            StressManagement::None => worry_level_while_examining,
+            StressManagement::TakeABreathAndDivideBy3 => worry_level_while_examining / 3,
+        };
         let target_monkey = if worry_level_once_bored % self.test_divisible_by == 0 {
             self.test_true_monkey
         } else {
@@ -90,8 +98,8 @@ impl Monkey {
 }
 
 fn main() {
-    // let input = include_str!("sample_input.txt");
-    let input = include_str!("input.txt");
+    let input = include_str!("sample_input.txt");
+    // let input = include_str!("input.txt");
     let mut monkeys: Vec<Monkey> = Vec::new();
 
     let mut new_monkey = Monkey::default();
@@ -115,10 +123,7 @@ fn main() {
             let label = label.trim_start();
             if label == "Starting items" {
                 new_monkey = Monkey {
-                    items: value
-                        .split(", ")
-                        .map(|x| x.parse::<i32>().unwrap())
-                        .collect(),
+                    items: value.split(", ").map(|x| x.parse().unwrap()).collect(),
                     ..new_monkey
                 };
             } else if label == "Operation" {
@@ -173,7 +178,7 @@ fn main() {
         for i in 0..monkeys_len {
             while monkeys[i].has_item() {
                 monkey_inspect_counts[i] += 1;
-                let (target_monkey_id, item) = monkeys[i].take_turn();
+                let (target_monkey_id, item) = monkeys[i].take_turn(StressManagement::None);
                 let target_monkey = &mut monkeys[target_monkey_id];
                 target_monkey.catch_item(item);
             }
