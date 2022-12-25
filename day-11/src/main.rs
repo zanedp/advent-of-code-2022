@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, str::FromStr};
 
-type WorryLevel = u128;
+type WorryLevel = u64;
 
 use Operation::*;
 #[derive(Debug, Default)]
@@ -46,13 +46,15 @@ impl FromStr for OperationValue {
     }
 }
 
+#[allow(dead_code)]
 enum StressManagement {
-    None,
+    JustPanic(WorryLevel),
     TakeABreathAndDivideBy3,
 }
 
 #[derive(Debug, Default)]
 struct Monkey {
+    #[allow(dead_code)]
     id: usize,
     items: VecDeque<WorryLevel>,
     op: Operation,
@@ -85,7 +87,9 @@ impl Monkey {
             Unknown => panic!("this monkey doesn't have an operation"),
         };
         let worry_level_once_bored = match stress_man {
-            StressManagement::None => worry_level_while_examining,
+            StressManagement::JustPanic(anxiety_baseline) => {
+                worry_level_while_examining % anxiety_baseline
+            }
             StressManagement::TakeABreathAndDivideBy3 => worry_level_while_examining / 3,
         };
         let target_monkey = if worry_level_once_bored % self.test_divisible_by == 0 {
@@ -98,8 +102,9 @@ impl Monkey {
 }
 
 fn main() {
-    let input = include_str!("sample_input.txt");
-    // let input = include_str!("input.txt");
+    // let input = include_str!("sample_input.txt");
+    let input = include_str!("input.txt");
+    let num_rounds = 10_000;
     let mut monkeys: Vec<Monkey> = Vec::new();
 
     let mut new_monkey = Monkey::default();
@@ -170,38 +175,42 @@ fn main() {
         }
     }
     monkeys.push(new_monkey);
-    println!("monkeys = {:#?}", monkeys);
+    // println!("monkeys = {:#?}", monkeys);
 
-    let mut monkey_inspect_counts = vec![0; monkeys.len()];
-    for round in 1..=20 {
+    // a common multiple should do. doesn't need to be LCM
+    let common_multiple: WorryLevel = monkeys.iter().map(|m| m.test_divisible_by).product();
+
+    let mut monkey_inspect_counts = vec![0u64; monkeys.len()];
+    for round in 1..=num_rounds {
         let monkeys_len = monkeys.len();
         for i in 0..monkeys_len {
             while monkeys[i].has_item() {
                 monkey_inspect_counts[i] += 1;
-                let (target_monkey_id, item) = monkeys[i].take_turn(StressManagement::None);
+                let (target_monkey_id, item) =
+                    monkeys[i].take_turn(StressManagement::JustPanic(common_multiple));
                 let target_monkey = &mut monkeys[target_monkey_id];
                 target_monkey.catch_item(item);
             }
         }
 
-        println!("After round {}:", round);
-        for m in monkeys.iter() {
-            println!(
-                "Monkey {}: {}",
-                m.id,
-                m.items
-                    .iter()
-                    .map(|x| format!("{}", x))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-        }
+        // println!("After round {}:", round);
+        // for m in monkeys.iter() {
+        //     println!(
+        //         "Monkey {}: {}",
+        //         m.id,
+        //         m.items
+        //             .iter()
+        //             .map(|x| format!("{}", x))
+        //             .collect::<Vec<_>>()
+        //             .join(", ")
+        //     )
+        // }
         let mut inspect_counts_sorted = monkey_inspect_counts.iter().collect::<Vec<_>>();
         inspect_counts_sorted.sort();
         inspect_counts_sorted.reverse();
         let a = inspect_counts_sorted[0];
         let b = inspect_counts_sorted[1];
         let monkey_business_level = a * b;
-        println!("monkey_business_level = {a} * {b} = {monkey_business_level}");
+        println!("round {round} monkey_business_level = {a} * {b} = {monkey_business_level}");
     }
 }
