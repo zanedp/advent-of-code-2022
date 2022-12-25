@@ -1,6 +1,8 @@
+use num_bigint::BigUint;
+use num_bigint::ToBigUint;
 use std::{collections::VecDeque, str::FromStr};
 
-type WorryLevel = u128;
+type WorryLevel = BigUint;
 
 use Operation::*;
 #[derive(Debug, Default)]
@@ -22,7 +24,7 @@ impl FromStr for Operation {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 enum OperationValue {
     #[default]
     OldValue,
@@ -75,9 +77,9 @@ impl Monkey {
     /// (monkey item is thrown to, item worry level)
     fn take_turn(&mut self, stress_man: StressManagement) -> (usize, WorryLevel) {
         let item_worry_level = self.items.pop_front().unwrap();
-        let op_value = match self.op_value {
-            OperationValue::Number(n) => n,
-            OperationValue::OldValue => item_worry_level,
+        let op_value = match self.op_value.clone() {
+            OperationValue::Number(n) => n.clone(),
+            OperationValue::OldValue => item_worry_level.clone(),
         };
         let worry_level_while_examining = match self.op {
             Add => item_worry_level + op_value,
@@ -86,9 +88,13 @@ impl Monkey {
         };
         let worry_level_once_bored = match stress_man {
             StressManagement::None => worry_level_while_examining,
-            StressManagement::TakeABreathAndDivideBy3 => worry_level_while_examining / 3,
+            StressManagement::TakeABreathAndDivideBy3 => {
+                worry_level_while_examining / 3.to_biguint().unwrap()
+            }
         };
-        let target_monkey = if worry_level_once_bored % self.test_divisible_by == 0 {
+        let target_monkey = if worry_level_once_bored.clone() % self.test_divisible_by.clone()
+            == 0.to_biguint().unwrap()
+        {
             self.test_true_monkey
         } else {
             self.test_false_monkey
@@ -98,8 +104,8 @@ impl Monkey {
 }
 
 fn main() {
-    let input = include_str!("sample_input.txt");
-    // let input = include_str!("input.txt");
+    // let input = include_str!("sample_input.txt");
+    let input = include_str!("input.txt");
     let mut monkeys: Vec<Monkey> = Vec::new();
 
     let mut new_monkey = Monkey::default();
@@ -170,10 +176,10 @@ fn main() {
         }
     }
     monkeys.push(new_monkey);
-    println!("monkeys = {:#?}", monkeys);
+    //println!("monkeys = {:#?}", monkeys);
 
-    let mut monkey_inspect_counts = vec![0; monkeys.len()];
-    for round in 1..=20 {
+    let mut monkey_inspect_counts = vec![0u32; monkeys.len()];
+    for round in 1..=10000 {
         let monkeys_len = monkeys.len();
         for i in 0..monkeys_len {
             while monkeys[i].has_item() {
@@ -184,24 +190,24 @@ fn main() {
             }
         }
 
-        println!("After round {}:", round);
-        for m in monkeys.iter() {
-            println!(
-                "Monkey {}: {}",
-                m.id,
-                m.items
-                    .iter()
-                    .map(|x| format!("{}", x))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-        }
+        // println!("After round {}:", round);
+        // for m in monkeys.iter() {
+        //     println!(
+        //         "Monkey {}: {}",
+        //         m.id,
+        //         m.items
+        //             .iter()
+        //             .map(|x| format!("{}", x))
+        //             .collect::<Vec<_>>()
+        //             .join(", ")
+        //     )
+        // }
         let mut inspect_counts_sorted = monkey_inspect_counts.iter().collect::<Vec<_>>();
         inspect_counts_sorted.sort();
         inspect_counts_sorted.reverse();
         let a = inspect_counts_sorted[0];
         let b = inspect_counts_sorted[1];
         let monkey_business_level = a * b;
-        println!("monkey_business_level = {a} * {b} = {monkey_business_level}");
+        println!("round {round} monkey_business_level = {a} * {b} = {monkey_business_level}");
     }
 }
