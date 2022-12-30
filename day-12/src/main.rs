@@ -56,14 +56,17 @@ impl Direction {
 struct Map {
     elevation: HeightMap,
     start: Coordinate,
+    end: Coordinate,
 }
 
 impl Map {
     fn new(height_map: Vec<Vec<Height>>) -> Self {
         let start = find_start(&height_map).expect("height_map should contain start, S");
+        let end = find_end(&height_map).expect("height_map should contain end, E");
         Self {
             elevation: height_map,
             start,
+            end,
         }
     }
 
@@ -143,6 +146,38 @@ impl<'a> Explorer<'a> {
         }
         None
     }
+
+    fn find_distance_from_end_to_lowland(&self) -> Option<i32> {
+        let dim = self.map.dimensions();
+        let mut queue = VecDeque::new();
+        let mut distances: Vec<Vec<Option<i32>>> = vec![vec![None; dim.1]; dim.0];
+        let cur = self.map.end;
+        distances[cur.0][cur.1] = Some(0);
+        queue.push_back(cur);
+        while !queue.is_empty() {
+            let cur = queue.pop_front().unwrap();
+            let cur_distance = distances[cur.0][cur.1].unwrap();
+
+            for n in self.map.neighbor_squares(cur) {
+                if distances[n.0][n.1].is_some() {
+                    // don't need to visit it again
+                    continue;
+                } else {
+                    if can_climb_to(self.map.height(n), self.map.height(cur)) {
+                        let n_distance = cur_distance + 1;
+                        if self.map.height(n) == 'a' {
+                            // this neighbor is a low point, so we're done
+                            return Some(n_distance);
+                        } else {
+                            distances[n.0][n.1] = Some(n_distance);
+                            queue.push_back(n);
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
 }
 
 #[test]
@@ -154,10 +189,10 @@ fn test_dir_next() {
     assert_eq!(Direction::None.next(), Direction::None);
 }
 
-fn can_climb_to(this: Height, other: Height) -> bool {
-    assert_ne!(this, 'E');
-    let this = if this == 'S' { 'a' } else { this };
-    let other = if other == 'S' { 'a' } else { other };
+fn can_climb_to(from: Height, to: Height) -> bool {
+    assert_ne!(from, 'E');
+    let this = if from == 'S' { 'a' } else { from };
+    let other = if to == 'S' { 'a' } else { to };
     let other = if other == 'E' { HEIGHT_MAX } else { other };
     (this as u32) + 1 >= (other as u32)
 }
@@ -184,6 +219,17 @@ fn find_start(height_map: &[Vec<Height>]) -> Option<Coordinate> {
     None
 }
 
+fn find_end(height_map: &[Vec<Height>]) -> Option<Coordinate> {
+    for (r, row) in height_map.iter().enumerate() {
+        for (c, &ch) in row.iter().enumerate() {
+            if ch == 'E' {
+                return Some(Coordinate(r, c));
+            }
+        }
+    }
+    None
+}
+
 fn main() {
     // let input = include_str!("sample_input.txt");
     let input = include_str!("input.txt");
@@ -195,5 +241,7 @@ fn main() {
 
     let mut explorer = Explorer::new(&map);
     let distance = explorer.find_distance_to_end();
+    let distance_to_lowland = explorer.find_distance_from_end_to_lowland();
     println!("distance = {:?}", distance);
+    println!("distance to lowland = {:?}", distance_to_lowland);
 }
