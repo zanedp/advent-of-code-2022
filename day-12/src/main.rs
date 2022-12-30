@@ -54,7 +54,7 @@ impl Direction {
 
 #[derive(Debug)]
 struct Map {
-    elevation: HeightMap,
+    elevations: HeightMap,
     start: Coordinate,
     end: Coordinate,
 }
@@ -64,7 +64,7 @@ impl Map {
         let start = find_start(&height_map).expect("height_map should contain start, S");
         let end = find_end(&height_map).expect("height_map should contain end, E");
         Self {
-            elevation: height_map,
+            elevations: height_map,
             start,
             end,
         }
@@ -73,7 +73,7 @@ impl Map {
     /// # Returns
     /// Tuple of (# rows, # columns)
     fn dimensions(&self) -> (usize, usize) {
-        (self.elevation.len(), self.elevation[0].len())
+        (self.elevations.len(), self.elevations[0].len())
     }
 
     /// Gets the neighboring squares of the specified position, but does not
@@ -82,7 +82,7 @@ impl Map {
         let mut retval = Vec::new();
         let mut cur_dir = Up;
         while !cur_dir.is_none() {
-            if let Some(new_pos) = pos.move_to_dir(cur_dir, &self.elevation) {
+            if let Some(new_pos) = pos.move_to_dir(cur_dir, &self.elevations) {
                 retval.push(new_pos);
             }
             cur_dir = cur_dir.next();
@@ -92,7 +92,7 @@ impl Map {
 
     /// Gets the height of the specified position.
     fn height(&self, coord: Coordinate) -> Height {
-        self.elevation[coord.0][coord.1]
+        self.elevations[coord.0][coord.1]
     }
 
     /// Indicates whether the specified position is the end point.
@@ -103,43 +103,40 @@ impl Map {
 
 #[derive(Debug)]
 struct Explorer<'a> {
-    queue: VecDeque<Coordinate>,
-    distances: Vec<Vec<Option<i32>>>,
     map: &'a Map,
 }
 
 impl<'a> Explorer<'a> {
     fn new(map: &'a Map) -> Self {
-        let dims = map.dimensions();
-        Self {
-            queue: VecDeque::new(),
-            distances: vec![vec![None; dims.1]; dims.0],
-            map,
-        }
+        Self { map }
     }
 
-    fn find_distance_to_end(&mut self) -> Option<i32> {
+    fn find_distance_to_end(&self) -> Option<i32> {
+        let mut queue: VecDeque<Coordinate> = VecDeque::new();
+        let dims = self.map.dimensions();
+        let mut distances = vec![vec![None; dims.1]; dims.0];
         let start = self.map.start;
-        self.queue.push_back(start);
-        self.distances[start.0][start.1] = Some(0);
+        queue.push_back(start);
+        distances[start.0][start.1] = Some(0);
 
-        while !self.queue.is_empty() {
-            let cur_pos = self.queue.pop_front().unwrap(); // ok because we checked for empty already
-            let cur_distance = self.distances[cur_pos.0][cur_pos.1].unwrap();
+        while !queue.is_empty() {
+            let cur_pos = queue.pop_front().unwrap(); // ok because we checked for empty already
+            let cur_distance = distances[cur_pos.0][cur_pos.1].unwrap();
             let neighbors = self.map.neighbor_squares(cur_pos);
             for n in neighbors {
-                if self.distances[n.0][n.1].is_some() {
+                if distances[n.0][n.1].is_some() {
                     // we already visited it
                     continue;
                 } else {
                     // this neighbor needs to be explored
+                    let n_distance = cur_distance + 1;
                     if can_climb_to(self.map.height(cur_pos), self.map.height(n)) {
                         // and we can explore it now, since we can climb up or down to it from current position
                         if self.map.is_end(n) {
-                            return Some(cur_distance + 1);
+                            return Some(n_distance);
                         }
-                        self.distances[n.0][n.1] = Some(cur_distance + 1);
-                        self.queue.push_back(n);
+                        distances[n.0][n.1] = Some(n_distance);
+                        queue.push_back(n);
                     }
                 }
             }
@@ -239,7 +236,7 @@ fn main() {
         .collect();
     let map = Map::new(height_map);
 
-    let mut explorer = Explorer::new(&map);
+    let explorer = Explorer::new(&map);
     let distance = explorer.find_distance_to_end();
     let distance_to_lowland = explorer.find_distance_from_end_to_lowland();
     println!("distance = {:?}", distance);
