@@ -1,6 +1,6 @@
 const HEIGHT_MAX: char = 'z';
 
-use std::{collections::VecDeque, vec};
+use std::{collections::VecDeque, str::FromStr, vec};
 
 type Height = char;
 type HeightMap = Vec<Vec<Height>>;
@@ -59,17 +59,30 @@ struct Map {
     end: Coordinate,
 }
 
-impl Map {
-    fn new(height_map: Vec<Vec<Height>>) -> Self {
-        let start = find_start(&height_map).expect("height_map should contain start, S");
-        let end = find_end(&height_map).expect("height_map should contain end, E");
-        Self {
-            elevations: height_map,
-            start,
-            end,
-        }
-    }
+impl FromStr for Map {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let height_map: HeightMap = s.lines().map(|line| Vec::from_iter(line.chars())).collect();
 
+        let start = find_start(&height_map);
+        if start.is_none() {
+            return Err("could not find start, S");
+        }
+
+        let end = find_end(&height_map);
+        if end.is_none() {
+            return Err("could not find end, E");
+        }
+
+        Ok(Self {
+            elevations: height_map,
+            start: start.unwrap(),
+            end: end.unwrap(),
+        })
+    }
+}
+
+impl Map {
     /// # Returns
     /// Tuple of (# rows, # columns)
     fn dimensions(&self) -> (usize, usize) {
@@ -101,80 +114,69 @@ impl Map {
     }
 }
 
-#[derive(Debug)]
-struct Explorer<'a> {
-    map: &'a Map,
+fn find_distance_to_end(map: &Map) -> Option<i32> {
+    let mut queue: VecDeque<Coordinate> = VecDeque::new();
+    let dims = map.dimensions();
+    let mut distances = vec![vec![None; dims.1]; dims.0];
+    let start = map.start;
+    queue.push_back(start);
+    distances[start.0][start.1] = Some(0);
+
+    while !queue.is_empty() {
+        let cur_pos = queue.pop_front().unwrap(); // ok because we checked for empty already
+        let cur_distance = distances[cur_pos.0][cur_pos.1].unwrap();
+        let neighbors = map.neighbor_squares(cur_pos);
+        for n in neighbors {
+            if distances[n.0][n.1].is_some() {
+                // we already visited it
+                continue;
+            } else {
+                // this neighbor needs to be explored
+                let n_distance = cur_distance + 1;
+                if can_climb_to(map.height(cur_pos), map.height(n)) {
+                    // and we can explore it now, since we can climb up or down to it from current position
+                    if map.is_end(n) {
+                        return Some(n_distance);
+                    }
+                    distances[n.0][n.1] = Some(n_distance);
+                    queue.push_back(n);
+                }
+            }
+        }
+    }
+    None
 }
 
-impl<'a> Explorer<'a> {
-    fn new(map: &'a Map) -> Self {
-        Self { map }
-    }
+fn find_distance_from_end_to_lowland(map: &Map) -> Option<i32> {
+    let dim = map.dimensions();
+    let mut queue = VecDeque::new();
+    let mut distances: Vec<Vec<Option<i32>>> = vec![vec![None; dim.1]; dim.0];
+    let cur = map.end;
+    distances[cur.0][cur.1] = Some(0);
+    queue.push_back(cur);
+    while !queue.is_empty() {
+        let cur = queue.pop_front().unwrap();
+        let cur_distance = distances[cur.0][cur.1].unwrap();
 
-    fn find_distance_to_end(&self) -> Option<i32> {
-        let mut queue: VecDeque<Coordinate> = VecDeque::new();
-        let dims = self.map.dimensions();
-        let mut distances = vec![vec![None; dims.1]; dims.0];
-        let start = self.map.start;
-        queue.push_back(start);
-        distances[start.0][start.1] = Some(0);
-
-        while !queue.is_empty() {
-            let cur_pos = queue.pop_front().unwrap(); // ok because we checked for empty already
-            let cur_distance = distances[cur_pos.0][cur_pos.1].unwrap();
-            let neighbors = self.map.neighbor_squares(cur_pos);
-            for n in neighbors {
-                if distances[n.0][n.1].is_some() {
-                    // we already visited it
-                    continue;
-                } else {
-                    // this neighbor needs to be explored
+        for n in map.neighbor_squares(cur) {
+            if distances[n.0][n.1].is_some() {
+                // don't need to visit it again
+                continue;
+            } else {
+                if can_climb_to(map.height(n), map.height(cur)) {
                     let n_distance = cur_distance + 1;
-                    if can_climb_to(self.map.height(cur_pos), self.map.height(n)) {
-                        // and we can explore it now, since we can climb up or down to it from current position
-                        if self.map.is_end(n) {
-                            return Some(n_distance);
-                        }
+                    if map.height(n) == 'a' {
+                        // this neighbor is a low point, so we're done
+                        return Some(n_distance);
+                    } else {
                         distances[n.0][n.1] = Some(n_distance);
                         queue.push_back(n);
                     }
                 }
             }
         }
-        None
     }
-
-    fn find_distance_from_end_to_lowland(&self) -> Option<i32> {
-        let dim = self.map.dimensions();
-        let mut queue = VecDeque::new();
-        let mut distances: Vec<Vec<Option<i32>>> = vec![vec![None; dim.1]; dim.0];
-        let cur = self.map.end;
-        distances[cur.0][cur.1] = Some(0);
-        queue.push_back(cur);
-        while !queue.is_empty() {
-            let cur = queue.pop_front().unwrap();
-            let cur_distance = distances[cur.0][cur.1].unwrap();
-
-            for n in self.map.neighbor_squares(cur) {
-                if distances[n.0][n.1].is_some() {
-                    // don't need to visit it again
-                    continue;
-                } else {
-                    if can_climb_to(self.map.height(n), self.map.height(cur)) {
-                        let n_distance = cur_distance + 1;
-                        if self.map.height(n) == 'a' {
-                            // this neighbor is a low point, so we're done
-                            return Some(n_distance);
-                        } else {
-                            distances[n.0][n.1] = Some(n_distance);
-                            queue.push_back(n);
-                        }
-                    }
-                }
-            }
-        }
-        None
-    }
+    None
 }
 
 #[test]
@@ -230,15 +232,9 @@ fn find_end(height_map: &[Vec<Height>]) -> Option<Coordinate> {
 fn main() {
     // let input = include_str!("sample_input.txt");
     let input = include_str!("input.txt");
-    let height_map: HeightMap = input
-        .lines()
-        .map(|line| Vec::from_iter(line.chars()))
-        .collect();
-    let map = Map::new(height_map);
-
-    let explorer = Explorer::new(&map);
-    let distance = explorer.find_distance_to_end();
-    let distance_to_lowland = explorer.find_distance_from_end_to_lowland();
+    let map = Map::from_str(input).unwrap();
+    let distance = find_distance_to_end(&map);
+    let distance_to_lowland = find_distance_from_end_to_lowland(&map);
     println!("distance = {:?}", distance);
     println!("distance to lowland = {:?}", distance_to_lowland);
 }
