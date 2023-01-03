@@ -91,7 +91,7 @@ impl Map {
 
     /// Gets the neighboring squares of the specified position, but does not
     /// consider whether or not an explorer could actually move to that position.
-    fn neighbor_squares(&self, pos: Coordinate) -> Box<dyn Iterator<Item = Coordinate>> {
+    fn neighbor_squares(&self, pos: Coordinate) -> impl Iterator<Item = Coordinate> {
         let mut retval = Vec::new();
         let mut cur_dir = Up;
         while !cur_dir.is_none() {
