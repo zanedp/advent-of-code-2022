@@ -56,10 +56,7 @@ impl FileSystemEntry {
     }
 
     fn print_tree_helper(&self, depth: usize) {
-        for _ in 0..depth {
-            print!(" ");
-        }
-        print!("- {}", self.name);
+        print!("{}- {}", " ".repeat(depth), self.name);
         if self.is_dir() {
             print!("/ ({})", self.size());
             println!();
