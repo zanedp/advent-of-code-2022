@@ -1,3 +1,6 @@
+// This was more of an exercise in building a DAG in Rust
+// than it was solving the Advent of Code problem.
+
 use std::{
     cell::{Cell, RefCell},
     collections::HashMap,
