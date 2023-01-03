@@ -107,20 +107,19 @@ impl Map {
     fn height(&self, coord: Coordinate) -> Height {
         self.elevations[coord.0][coord.1]
     }
-
-    /// Indicates whether the specified position is the end point.
-    fn is_end(&self, coord: Coordinate) -> bool {
-        self.height(coord) == 'E'
-    }
 }
 
-fn find_distance_to_end(map: &Map) -> Option<i32> {
+fn find_distance(
+    map: &Map,
+    start: Coordinate,
+    is_end_fn: impl Fn(Coordinate) -> bool,
+    can_travel_to_fn: impl Fn(Height, Height) -> bool,
+) -> Option<i32> {
     let mut queue: VecDeque<Coordinate> = VecDeque::new();
     let dims = map.dimensions();
     let mut distances = vec![vec![None; dims.1]; dims.0];
-    let start = map.start;
-    queue.push_back(start);
     distances[start.0][start.1] = Some(0);
+    queue.push_back(start);
 
     while !queue.is_empty() {
         let cur_pos = queue.pop_front().unwrap(); // ok because we checked for empty already
@@ -133,9 +132,9 @@ fn find_distance_to_end(map: &Map) -> Option<i32> {
             } else {
                 // this neighbor needs to be explored
                 let n_distance = cur_distance + 1;
-                if can_climb_to(map.height(cur_pos), map.height(n)) {
+                if can_travel_to_fn(map.height(cur_pos), map.height(n)) {
                     // and we can explore it now, since we can climb up or down to it from current position
-                    if map.is_end(n) {
+                    if is_end_fn(n) {
                         return Some(n_distance);
                     }
                     distances[n.0][n.1] = Some(n_distance);
@@ -147,36 +146,17 @@ fn find_distance_to_end(map: &Map) -> Option<i32> {
     None
 }
 
-fn find_distance_from_end_to_lowland(map: &Map) -> Option<i32> {
-    let dim = map.dimensions();
-    let mut queue = VecDeque::new();
-    let mut distances: Vec<Vec<Option<i32>>> = vec![vec![None; dim.1]; dim.0];
-    let cur = map.end;
-    distances[cur.0][cur.1] = Some(0);
-    queue.push_back(cur);
-    while !queue.is_empty() {
-        let cur = queue.pop_front().unwrap();
-        let cur_distance = distances[cur.0][cur.1].unwrap();
+fn find_distance_to_end(map: &Map) -> Option<i32> {
+    find_distance(map, map.start, |n| n == map.end, can_climb_to)
+}
 
-        for n in map.neighbor_squares(cur) {
-            if distances[n.0][n.1].is_some() {
-                // don't need to visit it again
-                continue;
-            } else {
-                if can_climb_to(map.height(n), map.height(cur)) {
-                    let n_distance = cur_distance + 1;
-                    if map.height(n) == 'a' {
-                        // this neighbor is a low point, so we're done
-                        return Some(n_distance);
-                    } else {
-                        distances[n.0][n.1] = Some(n_distance);
-                        queue.push_back(n);
-                    }
-                }
-            }
-        }
-    }
-    None
+fn find_distance_from_end_to_lowland(map: &Map) -> Option<i32> {
+    find_distance(
+        map,
+        map.end,
+        |n| map.elevations[n.0][n.1] == 'a',
+        |from, to| can_climb_to(to, from),
+    )
 }
 
 #[test]
@@ -188,6 +168,14 @@ fn test_dir_next() {
     assert_eq!(Direction::None.next(), Direction::None);
 }
 
+/// Indicates whether a hiker can climb from a square of specified height to a square of another specified height.
+///
+/// A hiker can climb to another square:
+/// - of the same elevation
+/// - of lower elevation
+/// - with an elevation one higher than where they currently are
+///
+/// A Height of 'S' is considered equivalent to height 'a' and a Height of 'E' is considered to be of height HEIGHT_MAX.
 fn can_climb_to(from: Height, to: Height) -> bool {
     assert_ne!(from, 'E');
     let this = if from == 'S' { 'a' } else { from };
