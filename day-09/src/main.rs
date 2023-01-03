@@ -41,14 +41,14 @@ fn main() {
     for (dir, num) in input {
         // println!("## {} {} ##", dir, num);
         // println!("before:");
-        // print_matrix(&to_matrix(
-        //     &mut std::iter::once(&h).chain(knots.iter()),
-        //     min_x,
-        //     max_x,
-        //     min_y,
-        //     max_y,
-        // ));
-        // println!();
+        print_matrix(&to_matrix(
+            std::iter::once(&h).chain(knots.iter()).cloned(),
+            min_x,
+            max_x,
+            min_y,
+            max_y,
+        ));
+        println!();
         for _ in 0..num {
             h = new_head_loc(h, dir);
 
@@ -87,7 +87,7 @@ fn main() {
 
 #[allow(dead_code)]
 fn to_matrix(
-    knots: &mut dyn Iterator<Item = &(i32, i32)>,
+    knots: impl Iterator<Item = (i32, i32)>,
     min_x: i32,
     max_x: i32,
     min_y: i32,
